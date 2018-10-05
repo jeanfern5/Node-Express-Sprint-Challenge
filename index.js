@@ -58,9 +58,11 @@ server.use(logger('combined'));
             res.status(400).json({error: 'Need to Provide a Name Less than 128 Characters'})
         } else if (!description) {
             res.status(400).json({error: 'Need to Provide a Description'})
-        }else if (!completed) {
-            res.status(400).json({error: 'Need to Provide if Completed is true or false'})
-        }else {
+        }
+        // else if (!completed) {
+        //     res.status(400).json({error: 'Need to Provide if Completed is true or false'})
+        // }
+        else {
             projectDb
                 .insert({name, description, completed})
                 .then(newProject => {
@@ -104,17 +106,91 @@ server.use(logger('combined'));
                     res.status(200).json(isUpdated)
                 }
             })
-            .catch()
+            .catch(() => {
+                res.status(500).json({error: `Could Not Update Project with Id ${id}`})
+            })
     });
 
 //ACTION MODEL ROUTES
     //GET ENDPOINT
+    server.get('/api/actions', (req, res) => {
+        actionDb
+            .get()
+            .then(actions => {
+                res.status(200).json(actions)
+            })
+            .catch(() => {
+                res.status(500).json({error: `Could Not Retrieve Actions`})
+            })
+    });
+
+    server.get('/api/actions/:id', (req, res) => {
+        const {id} = req.params
+        projectDb
+            .getProjectActions(id)
+            .then(projectActions => {
+                if (!projectActions) {
+                    res.status(404).json({error: `There is No Project Actions with the Id ${id}`})
+                }else {
+                    res.status(200).json(projectActions)
+                }
+            })
+            .catch(() => {
+                res.status(500).json({error: `Could Not Retrieve Actions from Id ${id}`})
+            })
+    });
 
     //POST ENDPOINT
+    server.post('/api/actions',(req, res) => {
+        const {project_id, description, notes, completed} = req.body;
+        if (!project_id) {
+            res.status(400).json({error: `Need to Provide Project Id`})
+        } else if (!description.substr(1,128)) {
+            res.status(400).json({error: `Need to Provide Description Less than 128 Characters`})
+        }else if (!notes) {
+            res.status(400).json({error: `Need to Provide Notes`})
+        }
+        // else if (!completed) {
+        //     res.status(400).json({error: `Need to Provide if Completed is true or false`})
+        // }
+        else {
+            actionDb
+            .insert({project_id, description, notes, completed})
+            .then(newAction => {
+                res.status(200).json(newAction)
+            })
+            .catch(() => {
+                res.status(500).json({error: `Could Not Add New Action`})
+            })
+        }
+    });
 
     //DELETE ENDPOINT
+    server.delete('/api/actions/:id', (req, res) => {
+        const {id} = req.params
+        actionDb
+            .remove(id)
+            .then(isRemoved => {
+                res.status(500).json(isRemoved)
+            })
+            .catch(() => {
+                res.status(500).json({error: `Could Not Delete Action at Id ${id}`})
+            })
+    });
 
     //PUT ENDPOINT
+    server.put('/api/actions/:id', (req, res) => {
+        const {id} = req.params;
+        const {project_id, description, notes, completed} = req.body;
+        actionDb
+            .update(id, {project_id, description, notes, completed})
+            .then(isUpdated => {
+                res.status(200).json(isUpdated)
+            })
+            .catch(() => {
+                res.status(500).json({error: `Could Not Update Action at Id ${id}`})
+            })
+    });
 
 //PORT LISTENER
 server.listen(port, () => {
