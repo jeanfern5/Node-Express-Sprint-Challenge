@@ -5,7 +5,7 @@
   "repository": "https://github.com/jeanfern5/Sprint-Challenge-Node-Express.git",
   "author": "JeanetteFernandez <jeanfern555@gmail.com>",
   "license": "MIT",
-  "script": {
+  "scripts": {
     "start": "nodemon index.js"
   },
   "dependencies": {
